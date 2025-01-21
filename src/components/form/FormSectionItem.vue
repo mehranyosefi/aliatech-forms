@@ -15,6 +15,13 @@ defineProps<{
   index: number;
   length: number;
 }>();
+defineEmits([
+  "handleRemoveItem",
+  "handleDuplicateItem",
+  "hanldeUpWardItem",
+  "hanldeDownWardItem",
+]);
+
 const title: ModelRef<string> = defineModel("title", {
   required: true,
 });
@@ -22,16 +29,8 @@ const required: ModelRef<boolean> = defineModel("required", { required: true });
 const type: ModelRef<ResponseInputType> = defineModel("type", {
   required: true,
 });
-const properties: ModelRef<Array<object | string> | []> = defineModel(
-  "properties",
-  { required: true }
-);
-defineEmits([
-  "handleRemoveItem",
-  "handleDuplicateItem",
-  "hanldeUpWardItem",
-  "hanldeDownWardItem",
-]);
+const properties: ModelRef<Array<{ name: string; value: number } | string>> =
+  defineModel("properties", { required: true });
 const categoryItems: Reactive<ResponseCategory[]> = reactive(
   responseCategoryItems
 );
@@ -47,10 +46,10 @@ const category = computed({
 
 const formData: Reactive<{
   response: string | [];
-  reactProperties: Array<object | string> | [];
+  reactProperties: Array<{ name: string; value: number } | string>;
 }> = reactive<{
   response: string | [];
-  reactProperties: Array<object | string> | [];
+  reactProperties: Array<{ name: string; value: number } | string>;
 }>({
   response: type.value === ResponseInputType.multiple ? [] : "",
   reactProperties: properties.value,
@@ -60,10 +59,11 @@ watch(category, (newValue) => (type.value = newValue!.value));
 
 function addNewProperty(): void {
   const length = formData.reactProperties.length;
-  formData.reactProperties.push({
+  const newProperty = {
     name: `گزینه ${length + 1}`,
-    value: formData.reactProperties.length + 1,
-  });
+    value: length + 1,
+  };
+  formData.reactProperties.push(newProperty);
 }
 </script>
 

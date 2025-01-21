@@ -83,7 +83,8 @@ const { fetchData, data, error, loading } = useFetch();
 async function handleFormCreate() {
   //TODO validate data
   await fetchData("form", { method: "POST", body: formData });
-  router.push({ name: "forms" });
+  if (data.value.ok) router.push({ name: "forms" });
+  else if (data.value) error.value = data.value.error;
 }
 </script>
 
@@ -101,8 +102,8 @@ async function handleFormCreate() {
             :is-loading="loading"
           >
             <template #prepend>
-              <svg class="size-5">
-                <use class="size-5" href="/img/icons.svg#tick"></use>
+              <svg class="size-6">
+                <use class="size-6" href="/img/icons.svg#tick"></use>
               </svg>
             </template>
             <span>ذخیره فرم</span>
@@ -186,6 +187,9 @@ async function handleFormCreate() {
         </div>
       </TransitionGroup>
     </div>
+    <div class="error">
+      {{ error }}
+    </div>
   </div>
 </template>
 
@@ -216,6 +220,9 @@ async function handleFormCreate() {
         }
       }
     }
+  }
+  .error {
+    @apply fixed top-0 left-0 right-0 bg-red-200 text-center;
   }
 }
 </style>

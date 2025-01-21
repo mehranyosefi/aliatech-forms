@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { shallowRef, type ShallowRef } from "vue";
+import { shallowRef, type ShallowRef, type Component } from "vue";
 import router from "./router";
 import layouts from "@/layouts";
 
-const layout: ShallowRef<string> = shallowRef("div");
+const layout: ShallowRef<Component | string> = shallowRef("div");
 router.afterEach((to) => {
-  layout.value = layouts[to.meta.layout];
+  layout.value = layouts[to.meta.layout as keyof typeof layouts];
 });
 </script>
 
