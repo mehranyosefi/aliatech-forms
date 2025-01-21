@@ -10,6 +10,7 @@ const props = withDefaults(defineProps<SelectProps>(), {
   readonly: false,
   textPath: "$.name",
   keyPath: "$.value",
+  disabled: false,
 });
 const model = defineModel();
 
@@ -36,6 +37,10 @@ function handleSelectItem(item): void {
   model.value = item;
   active.value = false;
 }
+function showItems(): void {
+  if (props.disabled) return;
+  active.value = !active.value;
+}
 
 if (model.value) select(model.value);
 else selectedText.value = "انتخاب کنید";
@@ -43,13 +48,13 @@ else selectedText.value = "انتخاب کنید";
 <template>
   <div
     class="select"
-    :class="{ active: active }"
+    :class="{ active: active, disabled: disabled }"
     v-click-ouside="() => (active = false)"
   >
     <label class="select__label">
       {{ label }}
     </label>
-    <div class="select__content" @click="active = !active">
+    <div class="select__content" @click="showItems">
       <div :class="{ active: active }">
         <slot name="prepend"></slot>
         <input
@@ -62,6 +67,7 @@ else selectedText.value = "انتخاب کنید";
         />
         <slot name="append">
           <svg
+            v-if="!disabled"
             class="size-5 transition-all duration-300 inline-block"
             :class="{ 'rotate-180': active }"
           >
@@ -107,6 +113,16 @@ else selectedText.value = "انتخاب کنید";
         @apply p-2 cursor-pointer;
         &:hover {
           @apply bg-gray-100;
+        }
+      }
+    }
+  }
+  &.disabled {
+    .select__content {
+      > div:first-child {
+        @apply bg-gray-400 cursor-auto;
+        input {
+          @apply cursor-auto;
         }
       }
     }

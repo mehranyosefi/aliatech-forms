@@ -14,7 +14,7 @@ onMounted(async () => {
   <div class="page">
     <header class="page__header">
       <div><h1>فرم ها</h1></div>
-      <BaseButton to="/forms/create">
+      <BaseButton to="/forms/crud">
         <template #prepend>
           <span class="prepend">+</span>
         </template>
@@ -23,19 +23,20 @@ onMounted(async () => {
     </header>
     <div class="page__content card">
       <div v-if="loading" class="page__content__loading">
-        ...loading
-        <div class="loader"></div>
+        <div class="loader text-gray-500 mx-auto"></div>
       </div>
       <div v-else-if="error" v-text="error"></div>
       <template v-else>
-        <div v-if="!data?.data?.length" class="page__content__empty">
+        <div v-if="!data?.data?.totla_quantity" class="page__content__empty">
           <p>هیچ فرمی تا به حال ساخته نشده است!</p>
-          <router-link to="/forms/create">ایجاد فرم</router-link>
+          <router-link to="/forms/crud">ایجاد فرم</router-link>
         </div>
-        <div v-if="data?.data?.length" class="page__content__items scrollbar">
-          <FormItem v-for="(form, index) in data?.data" :key="index">{{
-            form
-          }}</FormItem>
+        <div v-else class="page__content__items scrollbar">
+          <FormItem
+            v-for="(item, index) in data?.data.data"
+            :key="index"
+            :item="item"
+          ></FormItem>
         </div>
       </template>
     </div>
@@ -63,6 +64,12 @@ onMounted(async () => {
       @apply flex flex-wrap justify-center items-center w-full h-full text-center;
       a {
         @apply mr-3 text-blue-500;
+      }
+    }
+    &__loading {
+      @apply h-full flex items-center justify-center;
+      .loader {
+        @applytext-gray-500;
       }
     }
   }

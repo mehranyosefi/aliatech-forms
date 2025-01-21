@@ -36,7 +36,13 @@ export function useFetch(): ReturnUseFetch {
   const loading = shallowRef<boolean>(false);
 
   const fetchData = async (url: string, config?: FetchConfig) => {
+    const useUser = useUserStore();
+    if (requestLoadings.includes("refresh_token")) return;
     async function triggerFetch() {
+      if (useUser.isLoggedIn)
+        defaultHeaders[
+          "Authorization"
+        ] = `Bearer ${useUser.state.access_token}`;
       return await fetch(baseUrl + url, {
         method: config?.method || "GET",
         headers: config?.headers
@@ -45,10 +51,6 @@ export function useFetch(): ReturnUseFetch {
         body: config?.body ? JSON.stringify(config.body) : null,
       });
     }
-    const useUser = useUserStore();
-    if (useUser.isLoggedIn)
-      defaultHeaders["Authorization"] = `Bearer ${useUser.state.access_token}`;
-    if (requestLoadings.includes("refresh_token")) return;
     loading.value = true;
     try {
       const response = await triggerFetch();
@@ -70,9 +72,8 @@ export function useFetch(): ReturnUseFetch {
             }
           );
           const resData = await res.json();
-          if (resData.value?.ok) {
+          if (resData?.ok) {
             useUser.setTokens(resData.data);
-            // call reauest again after get 403 error
             const response = await triggerFetch();
             data.value = await response.json();
           }

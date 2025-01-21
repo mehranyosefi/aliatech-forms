@@ -30,12 +30,14 @@ export interface SelectProps {
   modelValue: string;
   textPath?: string;
   keyPath?: string;
+  disabled?: boolean;
 }
 export interface FormDataInterface {
   form_title: string;
   form_type: string;
   description: string;
   sections: FormSectionInterface[];
+  form_id?: string | number;
 }
 export enum FormType {
   public = "public",
@@ -91,7 +93,7 @@ export const responseCategoryItems: ResponseCategory[] = [
 ];
 
 export interface FormSectionInterface {
-  id: string | number;
+  id?: string | number;
   title: string;
   type: ResponseInputType;
   required: boolean;
@@ -99,18 +101,18 @@ export interface FormSectionInterface {
 }
 
 export class FormSection implements FormSectionInterface {
-  id: string | number;
+  id?: string | number;
   title: string;
   type: ResponseInputType;
   required: boolean;
   properties: Array<object | string> | [];
 
   constructor(
-    id: string | number,
     title: string,
     type: ResponseInputType,
     required: boolean,
-    properties: Array<object | string> | []
+    properties: Array<object | string> | [],
+    id?: string | number
   ) {
     this.id = id;
     this.title = title;
@@ -141,18 +143,8 @@ export const loginFormPattern: LoginFormPattern = {
     hasChanged: false,
   },
 };
-export const sections = [
-  new FormSection(1, "", ResponseInputType.short, true, []),
-  new FormSection(2, "", ResponseInputType.single, false, [
-    { name: "گزینه اول", value: 1 },
-    { name: "گزینه دوم", value: 2 },
-  ]),
-  new FormSection(3, "", ResponseInputType.long, true, []),
-  new FormSection(4, "", ResponseInputType.multiple, false, [
-    { name: "گزینه اول", value: 1 },
-    { name: "گزینه دوم", value: 2 },
-  ]),
-  new FormSection(6, "", ResponseInputType.file, true, []),
+export const sections: FormSection[] = [
+  new FormSection("", ResponseInputType.short, true, [], 1),
 ];
 export enum FileTypes {
   jpg = "image/jpeg",

@@ -2,10 +2,9 @@
 import BaseButton from "@/components/base/BaseButton.vue";
 import BaseInput from "@/components/base/BaseInput.vue";
 import BaseSelectBox from "@/components/base/BaseSelectBox.vue";
-import { computed, reactive, type Reactive } from "vue";
+import { computed, onMounted, reactive, type Reactive } from "vue";
 import { generateUUID } from "@/utility";
 import {
-  sections,
   formCategoryItems,
   FormSection,
   type FormSectionInterface,
@@ -18,11 +17,35 @@ import FormSectionItem from "@/components/form/FormSectionItem.vue";
 import { useFetch } from "@/composable/useFetch";
 import router from "@/router";
 
+const props = defineProps<{ id?: string | number }>();
+const {
+  fetchData: fetchFormData,
+  data: requestFormData,
+  loading: requestFetchDataLoading,
+  error: requestFetchDataError,
+} = useFetch();
+
+onMounted(async () => {
+  if (props.id) {
+    await fetchFormData(`form?form_id=${props.id}`);
+    if (requestFormData.value.ok) {
+      const items: FormDataInterface = requestFormData.value.data;
+      // Object.keys(items).forEach((key) => {
+      //   formData[key] = items[key];
+      // });
+      formData.form_title = items.form_title;
+      formData.form_type = items.form_type;
+      formData.description = items.description;
+      formData.sections = items.sections;
+    }
+  }
+});
+
 const formData: Reactive<FormDataInterface> = reactive<FormDataInterface>({
   form_title: "",
   form_type: "public",
   description: "",
-  sections: sections,
+  sections: [],
 });
 const userInfo = reactive({
   first_name: "",
@@ -71,45 +94,97 @@ function upWardItem(itemId: string | number): void {
 
 function addNewSection(): void {
   const newSection = new FormSection(
-    generateUUID(),
     "",
     ResponseInputType.short,
     false,
-    []
+    [],
+    generateUUID()
   );
   formData.sections.push(newSection);
 }
+function handleSubmitForm() {
+  if (props.id) editForm();
+  else createForm();
+}
+
 const { fetchData, data, error, loading } = useFetch();
-async function handleFormCreate() {
-  //TODO validate data
+async function createForm() {
   await fetchData("form", { method: "POST", body: formData });
   if (data.value.ok) router.push({ name: "forms" });
   else if (data.value) error.value = data.value.error;
 }
-</script>
 
+const {
+  fetchData: fetchUpdateForm,
+  data: requestUpdateFormData,
+  loading: requestUpdateFormLoading,
+  error: requestUpdateFormError,
+} = useFetch();
+async function editForm() {
+  await fetchUpdateForm(`form?form_id=${props.id}`, {
+    method: "PUT",
+    body: formData,
+  });
+  if (requestUpdateFormError.value) error.value = requestUpdateFormError.value;
+  else if (!requestUpdateFormData.value.ok)
+    error.value = requestUpdateFormData.value?.error;
+  else router.push({ name: "forms" });
+}
+
+const {
+  fetchData: fetchRemoveForm,
+  data: requestRemoveForm,
+  loading: requestRemoveFormLoading,
+  error: requestRemoveFormError,
+} = useFetch();
+async function handleRemoveForm() {
+  await fetchRemoveForm(`form?form_id=${props.id}`, { method: "Delete" });
+  if (requestRemoveFormError.value) error.value = requestRemoveFormError.value;
+  else if (!requestRemoveForm.value.ok)
+    error.value = requestRemoveForm.value?.error;
+  else router.push({ name: "forms" });
+}
+</script>
 <template>
   <div class="page">
     <header class="page_header">
-      <div><h1>ساخت فرم</h1></div>
+      <div>
+        <h1>
+          <span v-if="!id">ساخت فرم</span>
+          <span v-else>ویرایش فرم</span>
+        </h1>
+      </div>
     </header>
-    <div class="page__content formScaffold">
+    <div v-if="requestFetchDataLoading" class="page__loading">
+      <div class="loader"></div>
+    </div>
+    <div v-else-if="requestFetchDataError" v-text="requestFetchDataError"></div>
+    <div v-else class="page__content formScaffold">
       <div class="card formScaffold__firstrow">
-        <div>
-          <BaseButton
-            class="save"
-            @handle-click="handleFormCreate"
-            :is-loading="loading"
-          >
-            <template #prepend>
-              <svg class="size-6">
-                <use class="size-6" href="/img/icons.svg#tick"></use>
-              </svg>
-            </template>
-            <span>ذخیره فرم</span>
-          </BaseButton>
-        </div>
-        <div></div>
+        <BaseButton
+          v-if="id"
+          class="outline"
+          @handle-click="handleRemoveForm"
+          :is-loading="requestRemoveFormLoading"
+        >
+          <template #prepend>
+            <svg class="size-6">
+              <use class="size-6" href="/img/icons.svg#trash-bin"></use>
+            </svg>
+          </template>
+          <span>حذف فرم</span>
+        </BaseButton>
+        <BaseButton
+          @handle-click="handleSubmitForm"
+          :is-loading="loading || requestUpdateFormLoading"
+        >
+          <template #prepend>
+            <svg class="size-6">
+              <use class="size-6" href="/img/icons.svg#tick"></use>
+            </svg>
+          </template>
+          <span>ذخیره فرم</span>
+        </BaseButton>
       </div>
       <div class="card formScaffold__secondrow">
         <div class="flex flex-col">
@@ -134,6 +209,7 @@ async function handleFormCreate() {
             label="دسته بندی"
             :items="formCategoryItems"
             v-model="categoryType"
+            :disabled="id ? true : false"
           ></BaseSelectBox>
           <Transition name="fade">
             <div class="mt-5" v-if="formData.form_type === FormType.public">
@@ -168,7 +244,7 @@ async function handleFormCreate() {
         <FormSectionItem
           v-for="(item, index) in formData.sections"
           :key="item.id"
-          :id="item.id"
+          :id="item.id as number"
           :index="index"
           :length="formData.sections.length"
           v-model:title="item.title"
@@ -199,11 +275,17 @@ async function handleFormCreate() {
   &__content {
     .card {
       @apply p-5 my-3;
-      .save {
-        @apply py-1 px-3 mr-auto w-36;
-      }
     }
     .formScaffold {
+      &__firstrow {
+        @apply flex justify-end;
+        .btn {
+          @apply py-1 px-3 w-36;
+        }
+        > .btn:first-child {
+          @apply ml-3;
+        }
+      }
       &__secondrow {
         @apply flex;
         > div:first-child {
@@ -219,6 +301,12 @@ async function handleFormCreate() {
           @apply text-3xl font-semibold pt-2 ml-2;
         }
       }
+    }
+  }
+  &__loading {
+    @apply h-full flex items-center justify-center;
+    .loader {
+      @apply text-gray-500;
     }
   }
   .error {
