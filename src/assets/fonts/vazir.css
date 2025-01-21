@@ -1,0 +1,22 @@
+@font-face {
+  font-family: "Vazir";
+  src: url("./source/Vazir-Bold-FD-WOL.ttf") format("truetype");
+  font-weight: bold;
+  font-style: normal;
+  font-stretch: normal;
+}
+@font-face {
+  font-family: "Vazir";
+  src: url("./source/Vazir-Medium-FD-WOL.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-stretch: normal;
+}
+
+@font-face {
+  font-family: "Vazir";
+  src: url("./source/Vazir-Thin-FD-WOL.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+}
