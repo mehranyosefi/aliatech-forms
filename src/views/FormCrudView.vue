@@ -240,7 +240,12 @@ async function handleRemoveForm() {
           </div>
         </Transition>
       </div>
-      <TransitionGroup name="list" tag="div">
+      <TransitionGroup
+        v-if="formData.sections.length"
+        name="list"
+        tag="div"
+        class="formsections"
+      >
         <FormSectionItem
           v-for="(item, index) in formData.sections"
           :key="item.id"
@@ -256,12 +261,12 @@ async function handleRemoveForm() {
           @hanlde-down-ward-item="downWardItem"
           @hanlde-up-ward-item="upWardItem"
         ></FormSectionItem>
-        <div class="newsection card">
-          <BaseButton class="outline" @handle-click="addNewSection"
-            ><span class="plusicon">+</span>پرسش جدید</BaseButton
-          >
-        </div>
       </TransitionGroup>
+      <div class="newsection card">
+        <BaseButton class="outline" @handle-click="addNewSection"
+          ><span class="plusicon">+</span>پرسش جدید</BaseButton
+        >
+      </div>
     </div>
     <div class="error">
       {{ error }}

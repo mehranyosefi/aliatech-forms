@@ -55,7 +55,10 @@ const formData: Reactive<{
   reactProperties: properties.value,
 });
 
-watch(category, (newValue) => (type.value = newValue!.value));
+watch(category, (newValue) => {
+  type.value = newValue!.value;
+  if (newValue?.value === ResponseInputType.multiple) formData.response = [];
+});
 
 function addNewProperty(): void {
   const length = formData.reactProperties.length;
